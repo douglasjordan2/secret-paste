@@ -1,0 +1,48 @@
+{
+  "name": "secret-paste",
+  "version": "0.1.0",
+  "description": "MCP server that lets an agent request a secret from the user without the value entering the conversation.",
+  "license": "MIT",
+  "author": "Douglas Jordan",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/douglasjordan2/secret-paste.git"
+  },
+  "homepage": "https://github.com/douglasjordan2/secret-paste#readme",
+  "bugs": {
+    "url": "https://github.com/douglasjordan2/secret-paste/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "secrets",
+    "claude-code",
+    "api-keys",
+    "dotenv",
+    "keychain",
+    "1password"
+  ],
+  "type": "module",
+  "bin": {
+    "secret-paste": "dist/server.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "prepare": "tsc"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

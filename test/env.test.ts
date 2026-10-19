@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, statSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { parseEnv } from "node:util";
 import { storeEnv, upsertEnvContent, formatEnvValue } from "../src/targets/env.ts";
 import { decodeFormField } from "../src/prompt-server.ts";
 
@@ -34,7 +35,17 @@ test("does not match keys that merely share a prefix", () => {
 test("quotes values that need it", () => {
   assert.equal(formatEnvValue(b("plain-Value_1.2/x")).toString(), "plain-Value_1.2/x");
   assert.equal(formatEnvValue(b("has space #hash")).toString(), "'has space #hash'");
-  assert.equal(formatEnvValue(b(`it's "q" \\`)).toString(), `"it's \\"q\\" \\\\"`);
+  assert.equal(formatEnvValue(b(`has "dq" \\n`)).toString(), `'has "dq" \\n'`);
+  assert.equal(formatEnvValue(b(`it's "q" \\`)).toString(), "`it's \"q\" \\`");
+  assert.equal(formatEnvValue(b("it's `bt` $x")).toString(), "\"it's `bt` $x\"");
+  assert.throws(() => formatEnvValue(b(`it's "q" \``)), /cannot store losslessly/);
+  assert.throws(() => formatEnvValue(b("it's `bt` \\")), /cannot store losslessly/);
+});
+
+test("quoted values round-trip through node's parseEnv", () => {
+  for (const v of ["a b", `x"y\\n`, `it's "q" \\ #h`, "it's `bt` $x #h"]) {
+    assert.equal(parseEnv(upsertEnvContent(null, "K", b(v)).toString()).K, v);
+  }
 });
 
 test("existing file keeps its mode and gets .gitignore entry inside a git repo", () => {

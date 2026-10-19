@@ -27,5 +27,5 @@ export async function storeOp(name: string, value: Buffer): Promise<{ readHint: 
     template.fill(0);
     encoded.fill(0);
   }
-  return { readHint: `op read "op://Private/${name}/password"` };
+  return { readHint: `op item get ${name} --fields label=password --reveal` };
 }

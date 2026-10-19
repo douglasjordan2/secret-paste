@@ -6,21 +6,15 @@ const SAFE_BYTE = /^[A-Za-z0-9_@%+=:,.\/-]$/;
 
 export function formatEnvValue(value: Buffer): Buffer {
   let safe = value.length > 0;
-  let hasSingleQuote = false;
   for (const b of value) {
-    const ch = String.fromCharCode(b);
-    if (!SAFE_BYTE.test(ch)) safe = false;
-    if (b === 0x27) hasSingleQuote = true;
+    if (!SAFE_BYTE.test(String.fromCharCode(b))) safe = false;
   }
   if (safe) return Buffer.from(value);
-  if (!hasSingleQuote) return Buffer.concat([Buffer.from("'"), value, Buffer.from("'")]);
-  const out: number[] = [0x22];
-  for (const b of value) {
-    if (b === 0x22 || b === 0x5c) out.push(0x5c);
-    out.push(b);
+  const quote = value.includes(0x27) ? (value.includes(0x60) ? 0x22 : 0x60) : 0x27;
+  if (quote === 0x22 && (value.includes(0x22) || value.includes(0x5c))) {
+    throw new Error("value mixes quote characters and backslashes in a way .env cannot store losslessly; use target keychain or op");
   }
-  out.push(0x22);
-  return Buffer.from(out);
+  return Buffer.concat([Buffer.from([quote]), value, Buffer.from([quote])]);
 }
 
 export function upsertEnvContent(existing: Buffer | null, name: string, value: Buffer): Buffer {

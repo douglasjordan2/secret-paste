@@ -1,12 +1,18 @@
 # secret-paste
 
 An MCP server that lets an agent request an API key or other secret from you
-without the value ever entering the conversation, a tool argument, or the
-transcript. "pbcopy for agents."
+without you pasting it into the chat. The value never passes through the
+conversation, a tool argument, or a tool result. "pbcopy for agents."
 
 The agent calls `request_secret`. You get a local browser page with a single
 password field. The value goes straight from the page to `.env`, your OS
 keychain, or 1Password. The agent only ever sees `{ name, target, stored }`.
+
+This keeps the secret out of the request path, not out of the agent's reach.
+Once stored, an agent with shell access can still read it (`cat .env`,
+`secret-tool lookup`, `op item get`), and anything it reads lands in the
+transcript. Pair this with permission rules that deny reading `.env` or running
+those commands if that matters to you.
 
 ## Install
 
@@ -39,11 +45,16 @@ The value, its length, a prefix, or a hash is never returned, logged, or echoed.
   (the directory Claude Code was started in). Other lines are preserved, an
   existing line for that name is replaced, the file is created with mode 0600
   if missing, and `.env` is appended to `.gitignore` when the directory is a
-  git repo.
+  git repo. Values are written unquoted when possible, otherwise wrapped in
+  `'`, `` ` ``, or `"` (whichever the value doesn't contain) so dotenv and
+  Node's `process.loadEnvFile` read them back verbatim. Values that can't be
+  quoted losslessly are rejected with a hint to use `keychain` or `op`.
 - `keychain`: macOS `security add-generic-password` (fed over stdin via
   `security -i`, so the value never appears in `ps`), or Linux `secret-tool
   store` (requires `libsecret-tools`).
-- `op`: `op item create` with a JSON item template on stdin (1Password CLI).
+- `op`: `op item create` with a JSON item template on stdin (1Password CLI),
+  saved to your default vault. Read it back with
+  `op item get NAME --fields label=password --reveal`.
 
 ## How it works
 

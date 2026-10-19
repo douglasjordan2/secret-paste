@@ -31,7 +31,7 @@ export function renderPrompt(opts: { name: string; description?: string; action:
         <button type="submit" formaction="${opts.action}/cancel" formnovalidate class="cancel">Cancel</button>
       </div>
     </form>
-    <small>Stored to <code>${escapeHtml(opts.target)}</code>. The value never reaches the model or the transcript.</small>`);
+    <small>Stored to <code>${escapeHtml(opts.target)}</code>. This tool never sends the value to the model.</small>`);
 }
 
 export function renderDone(message: string): string {
